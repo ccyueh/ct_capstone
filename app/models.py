@@ -43,6 +43,13 @@ class Characteristic(db.Model):
     characteristic_id = db.Column(db.Integer, primary_key=True
     characteristic_name = db.Column(db.String(50))
 
+class PartyHost(db.Model):
+    party_id = db.Column(db.Integer, db.ForeignKey('party.party_id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'))
+
+    party = db.relationship('Party', backref=db.backref('party_host', lazy='joined'))
+    user = db.relationship('User', backref=db.backref('party_host', lazy='joined'))
+
 class PartyUser(db.Model):
     party_id = db.Column(db.Integer, db.ForeignKey('party.party_id'))
     user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'))
