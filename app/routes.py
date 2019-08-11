@@ -1,6 +1,6 @@
 from app import app, db
 from flask import request, jsonify
-from app.models import Party, User, Bottle, Rating, Characteristic#, party_guests, rating_characteristics
+from app.models import Party, User, Bottle, Rating, Characteristic, party_guests, rating_characteristics
 
 @app.route('/')
 def index():
@@ -61,13 +61,11 @@ def addGuest():
         user_id = request.headers.get('user_id')
 
         if party_id and user_id:
-            party = Party(party_id=party_id)
-            user = User(user_id=user_id)
-
+            party = db.session.query(Party).filter_by(party_id=party_id).first()
+            user = db.session.query(User).filter_by(user_id=user_id).first()
             party.guests.append(user)
-            user.parties.append(party)
+
             db.session.add(party)
-            db.session.add(user)
             db.session.commit()
 
             return jsonify({ 'success': 'Guest added to party.' })
@@ -111,7 +109,8 @@ def rate():
         if stars and user_id and bottle_id:
             rating = Rating(stars=stars, description=description, user_id=user_id, bottle_id=bottle_id)
 
-            for characteristic in characteristics:
+            for characteristic_id in characteristics:
+                characteristic = db.session.query(Characteristic).filter_by(characteristic_id=chcharacteristic_id).first()
                 rating.characteristics.append(characteristic)
 
             db.session.add(rating)
@@ -123,6 +122,23 @@ def rate():
     except:
         return jsonify({ 'error': 'Error #011: Could not add rating.' })
 
+@app.route('/api/characteristics/save', methods=['POST'])
+def rate():
+    try:
+        characteristic_name = request.headers.get('characteristic_name')
+
+        if characteristic_name:
+            characteristic = Characteristic(characteristic_name=characteristic_name)
+
+            db.session.add(characteristic)
+            db.session.commit()
+
+            return jsonify({ 'success': 'Characteristic added.' })
+        else:
+            return jsonify({ 'error': 'Error #012: Missing parameters.' })
+    except:
+        return jsonify({ 'error': 'Error #013: Could not add characteristic.' })
+
 @app.route('/api/ratings/retrieve', methods=['GET'])
 def getRating():
     try:
@@ -133,7 +149,10 @@ def getRating():
         if bottle_id and user_id:
             rating = Rating.query.filter_by(user_id=user_id, bottle_id=bottle_id).first()
 
-            return jsonify({ 'success': 'Rating retrieved.', 'rating': rating })
+            results = Characteristic.query.join(rating_characteristics).join(Rating).filter(Rating.rating_id==1).all()
+            characteristics = [result.characteristic_name for result in results]
+
+            return jsonify({ 'success': 'Rating retrieved.', 'rating': rating, 'characteristics': characteristics })
         # get star ratings for specific bottle, or list of who rated it
         elif bottle_id:
             results = Rating.query.filter_by(bottle_id=bottle_id).all()
@@ -142,9 +161,9 @@ def getRating():
 
             return jsonify({ 'success': 'Rating info retrieved.', 'star_ratings': star_ratings, 'rated_by': rated_by })
         else:
-            return jsonify({ 'error': 'Error #012: Missing parameters.' })
+            return jsonify({ 'error': 'Error #014: Missing parameters.' })
     except:
-        return jsonify({ 'error': 'Error #013: Could not find rating.' })
+        return jsonify({ 'error': 'Error #015: Could not find rating.' })
 
 @app.route('/api/parties/retrieve', methods=['GET'])
 def getParty():
@@ -164,9 +183,9 @@ def getParty():
                 results = Party.query.filter_by(host_id=host_id).all()
             # get party information for parties attended by user
             elif user_id and not host_id:
-                results = Party.query.join(party_guests).join(User).filter(party_guests.user_id == user_id).all()
+                results = Party.query.join(party_guests).join(User).filter(User.user_id == user_id).all()
             else:
-                return jsonify({ 'error': 'Error #014: Missing parameters.' })
+                return jsonify({ 'error': 'Error #016: Missing parameters.' })
 
             parties = []
             for result in results:
@@ -182,7 +201,7 @@ def getParty():
             return jsonify({ 'success': 'Party info retrieved.', 'parties': parties })
             # use party_id(s) to get more information (guests, bottles, ratings)
     except:
-        return jsonify({ 'error': 'Error #015: Could not find party/parties.' })
+        return jsonify({ 'error': 'Error #017: Could not find party/parties.' })
 
 @app.route('/api/bottles/retrieve', methods=['GET'])
 def getBottles():
@@ -207,6 +226,6 @@ def getBottles():
 
             return jsonify({ 'success': 'Retrieved bottles.', 'bottles': bottles })
         else:
-            return jsonify({ 'error': 'Error #016: Missing parameters.' })
+            return jsonify({ 'error': 'Error #018: Missing parameters.' })
     except:
-        return jsonify({ 'error': 'Error #017: Could not find bottles.' })
+        return jsonify({ 'error': 'Error #019: Could not find bottles.' })
