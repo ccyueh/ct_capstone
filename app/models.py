@@ -3,23 +3,27 @@ from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 
-class Party(db.Model): 
+class Party(db.Model):
     party_id = db.Column(db.Integer, primary_key=True)
-    host_id = db.Column(db.Integer, db.ForeignKey('user.user_id'))
-    projected_start = db.Column(db.DateTime)
-    projected_end = db.Column(db.DateTime)
+    start = db.Column(db.DateTime)
+    end = db.Column(db.DateTime)
     party_name = db.Column(db.String(100))
     location = db.Column(db.String(100))
 
+    host_id = db.Column(db.Integer, db.ForeignKey('user.user_id'))
     user = db.relationship('User', backref=db.backref('party', lazy='joined'))
+
+    guests = db.relationship('User', secondary=party_guests, backref='party')
 
 class User(db.Model, UserMixin):
     user_id = db.Column(db.Integer, primary_key=True)
     first_name = db.Column(db.String(50))
     last_name = db.Column(db.String(50))
-    profile_img = db.Column(db.String(500))
+    #profile_img = db.Column(db.String(500))
     email = db.Column(db.String(120), unique=True, index=True)
     password_hash = db.Column(db.String(256))
+
+    parties = db.relationship('Party', secondary=party_guests, backref='user')
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -32,62 +36,37 @@ class Bottle(db.Model):
     producer = db.Column(db.String(100))
     bottle_name = db.Column(db.String(100))
     vintage = db.Column(db.Integer)
-    label_img = db.Column(db.String(500))
+    #label_img = db.Column(db.String(500))
+
+    party_id = db.Column(db.Integer, db.ForeignKey('party.party_id'))
+    party = db.relationship('Party', backref=db.backref('bottle', lazy='joined'))
+
+    user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'))
+    user = db.relationship('User', backref=db.backref('bottle', lazy='joined'))
 
 class Rating(db.Model):
     rating_id = db.Column(db.Integer, primary_key=True)
     stars = db.Column(db.Integer)
     description = db.Column(db.String(500))
 
+    user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'))
+    user = db.relationship('User', backref=db.backref('rating', lazy='joined'))
+
+    bottle_id = db.Column(db.Integer, db.ForeignKey('bottle.bottle_id'))
+    bottle = db.relationship('Bottle', backref=db.backref('rating', lazy='joined'))
+
+    characteristics = db.relationship('Characteristic', secondary=rating_characteristics)
+
 class Characteristic(db.Model):
     characteristic_id = db.Column(db.Integer, primary_key=True
     characteristic_name = db.Column(db.String(50))
 
-class PartyHost(db.Model):
-    party_id = db.Column(db.Integer, db.ForeignKey('party.party_id'))
-    user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'))
+party_guests = db.Table('party_guests',
+    db.Column('party_id', db.Integer, db.ForeignKey('party.party_id')),
+    db.Column('user_id', db.Integer, db.ForeignKey('user.user_id'))
+)
 
-    party = db.relationship('Party', backref=db.backref('party_host', lazy='joined'))
-    user = db.relationship('User', backref=db.backref('party_host', lazy='joined'))
-
-class PartyUser(db.Model):
-    party_id = db.Column(db.Integer, db.ForeignKey('party.party_id'))
-    user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'))
-
-    party = db.relationship('Party', backref=db.backref('party_user', lazy='joined'))
-    user = db.relationship('User', backref=db.backref('party_user', lazy='joined'))
-
-class PartyBottle(db.Model):
-    party_id = db.Column(db.Integer, db.ForeignKey('party.party_id'))
-    bottle_id = db.Column(db.Integer, db.ForeignKey('bottle.bottle_id'))
-
-    party = db.relationship('Party', backref=db.backref('party_bottle', lazy='joined'))
-    bottle = db.relationship('Bottle', backref=db.backref('party_bottle', lazy='joined'))
-
-class BottleUser(db.Model):
-    bottle_id = db.Column(db.Integer, db.ForeignKey('bottle.bottle_id'))
-    user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'))
-
-    bottle = db.relationship('Bottle', backref=db.backref('bottle_user', lazy='joined'))
-    user = db.relationship('User', backref=db.backref('bottle_user', lazy='joined'))
-
-class RatingBottle(db.Model):
-    rating_id = db.Column(db.Integer, db.ForeignKey('rating.rating_id'))
-    bottle_id = db.Column(db.Integer, db.ForeignKey('bottle.bottle_id'))
-
-    rating = db.relationship('Rating', backref=db.backref('rating_bottle', lazy='joined'))
-    bottle = db.relationship('Bottle', backref=db.backref('rating_bottle', lazy='joined'))
-
-class RatingUser(db.Model):
-    rating_id = db.Column(db.Integer, db.ForeignKey('rating.rating_id'))
-    user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'))
-
-    rating = db.relationship('Rating', backref=db.backref('rating_user', lazy='joined'))
-    user = db.relationship('User', backref=db.backref('rating_user', lazy='joined'))
-
-class RatingCharacteristic(db.Model):
-    rating_id = db.Column(db.Integer, db.ForeignKey('rating.rating_id'))
-    characteristic_id = db.Column(db.Integer, db.ForeignKey('characteristic.characteristic_id'))
-
-    rating = db.relationship('Rating', backref=db.backref('rating_characteristic', lazy='joined'))
-    characteristic = db.relationship('Characteristic', backref=db.backref('rating_characteristic', lazy='joined'))
+rating_characteristics = db.Table('rating_characteristics',
+    db.Column('rating_id', db.Integer, db.ForeignKey('rating.rating_id')),
+    db.Column('characteristic_id', db.Integer, db.ForeignKey('characteristic.characteristic_id'))
+)
