@@ -187,8 +187,19 @@ def getParty():
         user_id = request.args.get('user_id')
 
         # get party information for specific party
-        if party_id:
-            result = Party.query.filter_by(party_id=party_id).first()
+        if party_id and not host_id and not user_id:
+            results = Party.query.filter_by(party_id=party_id).all()
+        # get party information for parties hosted by user
+        elif host_id and not user_id and not party_id:
+            results = Party.query.filter_by(host_id=host_id).all()
+        # get party information for parties attended by user
+        elif user_id and not host_id and not party_id:
+            results = Party.query.join(party_guests).join(User).filter(User.user_id == user_id).all()
+        else:
+            return jsonify({ 'error': 'Error #016: Retrieve parties using one ID only.' })
+
+        parties = []
+        for result in results:
             party = {
                 'party_id': result.party_id,
                 'start': result.start,
@@ -196,31 +207,10 @@ def getParty():
                 'party_name': result.party_name,
                 'location': result.location
             }
+            parties.append(party)
 
-            return jsonify({ 'success': 'Party info retrieved.', 'party': party})
-        elif host_id or user_id:
-            # get party information for parties hosted by user
-            if host_id and not user_id:
-                results = Party.query.filter_by(host_id=host_id).all()
-            # get party information for parties attended by user
-            elif user_id and not host_id:
-                results = Party.query.join(party_guests).join(User).filter(User.user_id == user_id).all()
-            else:
-                return jsonify({ 'error': 'Error #016: Host or User ID only.' })
-
-            parties = []
-            for result in results:
-                party = {
-                    'party_id': result.party_id,
-                    'start': result.start,
-                    'end': result.end,
-                    'party_name': result.party_name,
-                    'location': result.location
-                }
-                parties.append(party)
-
-            return jsonify({ 'success': 'Party info retrieved.', 'parties': parties })
-            # use party_id(s) to get more information (guests, bottles, ratings)
+        return jsonify({ 'success': 'Party info retrieved.', 'parties': parties })
+        # use party_id(s) to get more information (guests, bottles, ratings)
     except:
         return jsonify({ 'error': 'Error #017: Could not find party/parties.' })
 
