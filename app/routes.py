@@ -156,12 +156,15 @@ def getRating():
 
         # get user's rating/tasting notes for specific bottle
         if bottle_id and user_id:
-            rating = Rating.query.filter_by(user_id=user_id, bottle_id=bottle_id).first()
+            result = Rating.query.filter_by(user_id=user_id, bottle_id=bottle_id).first()
+            rating = {
+                'rating_id': result.rating_id,
+                'stars': result.stars,
+                'description': result.description,
+                'characteristics': result.characteristics
+            }
 
-            results = Characteristic.query.join(rating_characteristics).join(Rating).filter(Rating.rating_id==1).all()
-            characteristics = [result.characteristic_name for result in results]
-
-            return jsonify({ 'success': 'Rating retrieved.', 'rating': rating, 'characteristics': characteristics })
+            return jsonify({ 'success': 'Rating retrieved.', 'rating': rating })
         # get star ratings for specific bottle, or list of who rated it
         elif bottle_id:
             results = Rating.query.filter_by(bottle_id=bottle_id).all()
@@ -177,13 +180,20 @@ def getRating():
 @app.route('/api/parties/retrieve', methods=['GET'])
 def getParty():
     try:
-        party_id = request.headers.get('party_id')
-        host_id = request.headers.get('host_id')
-        user_id = request.headers.get('user_id')
+        party_id = request.args.get('party_id')
+        host_id = request.args.get('host_id')
+        user_id = request.args.get('user_id')
 
         # get party information for specific party
         if party_id:
-            party = Party.query.filter_by(party_id=party_id).first()
+            result = Party.query.filter_by(party_id=party_id).first()
+            party = {
+                'party_id': result.party_id,
+                'start': result.start,
+                'end': result.end,
+                'party_name': result.party_name,
+                'location': result.location
+            }
 
             return jsonify({ 'success': 'Party info retrieved.', 'party': party})
         elif host_id or user_id:
@@ -194,7 +204,7 @@ def getParty():
             elif user_id and not host_id:
                 results = Party.query.join(party_guests).join(User).filter(User.user_id == user_id).all()
             else:
-                return jsonify({ 'error': 'Error #016: Missing parameters.' })
+                return jsonify({ 'error': 'Error #016: Host or User ID only.' })
 
             parties = []
             for result in results:
@@ -216,7 +226,7 @@ def getParty():
 def getBottles():
     # get bottle information for all bottles for a party
     try:
-        party_id = request.headers.get('party_id')
+        party_id = request.args.get('party_id')
 
         if party_id:
             results = Bottle.query.filter_by(party_id=party_id).all()

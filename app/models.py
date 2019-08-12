@@ -63,7 +63,7 @@ class Rating(db.Model):
     bottle_id = db.Column(db.Integer, db.ForeignKey('bottle.bottle_id'))
     bottle = db.relationship('Bottle', backref=db.backref('rating', lazy='joined'))
 
-    characteristics = db.relationship('Characteristic', secondary=rating_characteristics)
+    characteristics = db.relationship('Characteristic', secondary=rating_characteristics, backref='rating_notes')
 
 class Characteristic(db.Model):
     characteristic_id = db.Column(db.Integer, primary_key=True)
