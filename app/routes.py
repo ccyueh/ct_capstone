@@ -1,6 +1,7 @@
 from app import app, db
 from flask import request, jsonify
 from app.models import Party, User, Bottle, Rating, Characteristic, party_guests, rating_characteristics
+from datetime import datetime
 
 @app.route('/')
 def index():
@@ -9,15 +10,16 @@ def index():
 @app.route('/api/parties/save', methods=['POST'])
 def createParty():
     try:
-        start = request.headers.get('start')
-        end = request.headers.get('end')
-        party_name = request.headers.get('party_name')
-        location = request.headers.get('location')
-        host_id = request.headers.get('host_id')
+        data = request.json
 
-        # all parameters are needed to create new party
-        if start and end and party_name and location and host_id:
-            party = Party(start=start, end=end, party_name=party_name, location=location, host_id=host_id)
+        if None not in data.values():
+            party = Party(
+                start=data.get('start'),
+                end=data.get('end'),
+                party_name=data.get('party_name'),
+                location=data.get('location'),
+                host_id=data.get('host_id')
+            )
 
             db.session.add(party)
             db.session.commit()
@@ -28,25 +30,25 @@ def createParty():
     except:
         return jsonify({ 'error': 'Error #002: Invalid parameters.' })
 
-@app.route('/api/register/', methods=['POST'])
+@app.route('/api/register', methods=['POST'])
 def register():
     try:
-        first_name = request.headers.get('first_name')
-        last_name = request.headers.get('last_name')
-        #profile_img = request.headers.get('profile_img')
-        email = request.headers.get('email')
-        password = request.headers.get('password')
-        password2 = request.headers.get('password2')
+        data = request.json
 
-        if email and password and password2:
+        if data.get('email') and data.get('password') and data.get('password2'):
             # check if re-typed password matches
-            if password == password2:
-                user = User(first_name=first_name, last_name=last_name, email=email)
+            if data.get('password') == data.get('password2'):
+                user = User(
+                    first_name=data.get('first_name'),
+                    last_name=data.get('last_name'),
+                    email=data.get('email')
+                )
 
-                user.set_password(password)
+                user.set_password(data.get('password'))
 
                 db.session.add(user)
                 db.session.commit()
+                return jsonify({ 'success': 'User registered.' })
             else:
                 return jsonify({ 'error': 'Error #003: Password and re-typed password must match.' })
         else:
@@ -57,12 +59,11 @@ def register():
 @app.route('/api/guests/save', methods=['POST'])
 def addGuest():
     try:
-        party_id = request.headers.get('party_id')
-        user_id = request.headers.get('user_id')
+        data = request.json
 
-        if party_id and user_id:
-            party = db.session.query(Party).filter_by(party_id=party_id).first()
-            user = db.session.query(User).filter_by(user_id=user_id).first()
+        if data.get('party_id') and data.get('user_id'):
+            party = db.session.query(Party).filter_by(party_id=data.get('party_id')).first()
+            user = db.session.query(User).filter_by(user_id=data.get('user_id')).first()
             party.guests.append(user)
 
             db.session.add(party)
@@ -78,15 +79,20 @@ def addGuest():
 def addBottle():
     # user adds bottle for party before party begins
     try:
-        producer = request.headers.get('producer')
-        bottle_name = request.headers.get('bottle_name')
-        vintage = request.headers.get('vintage')
-        label_img = request.headers.get('label_img')
-        party_id = request.headers.get('party_id')
-        user_id = request.headers.get('user_id')
+        data = request.json
 
-        if label_img and party_id and user_id:
-            bottle = Bottle(producer=producer, bottle_name=bottle_name, vintage=vintage, label_img=label_img)
+        if data.get('label_img') and data.get('party_id') and data.get('user_id'):
+            if Bottle.query.filter_by(party_id=data.get('party_id'), user_id=data.get('user_id')).first():
+                return jsonify({ 'error': 'Error #008: User already added bottle for this party.' })
+
+            bottle = Bottle(
+                producer=data.get('producer'),
+                bottle_name=data.get('bottle_name'),
+                vintage=data.get('vintage'),
+                label_img=data.get('label_img'),
+                party_id=data.get('party_id'),
+                user_id=data.get('user_id')
+            )
 
             db.session.add(bottle)
             db.session.commit()
@@ -100,17 +106,20 @@ def addBottle():
 @app.route('/api/ratings/save', methods=['POST'])
 def rate():
     try:
-        stars = request.headers.get('stars')
-        description = request.headers.get('description')
-        user_id = request.headers.get('user_id')
-        bottle_id = request.headers.get('bottle_id')
-        characteristics = request.headers.get('characteristics')
+        data = request.json
 
-        if stars and user_id and bottle_id:
-            rating = Rating(stars=stars, description=description, user_id=user_id, bottle_id=bottle_id)
+        if Rating.query.filter_by(bottle_id=data.get('bottle_id'), user_id=data.get('user_id')).first():
+            return jsonify({ 'error': 'Error #008: Bottle already rated by user.' })
 
-            for characteristic_id in characteristics:
-                characteristic = db.session.query(Characteristic).filter_by(characteristic_id=chcharacteristic_id).first()
+        if data.get('stars') and data.get('user_id') and data.get('bottle_id'):
+            rating = Rating(
+                stars=data.get('stars'),
+                description=data.get('description'),
+                user_id=data.get('user_id'),
+                bottle_id=data.get('bottle_id'))
+
+            for characteristic_id in data.get('characteristics'):
+                characteristic = Characteristic.query.filter_by(characteristic_id=characteristic_id).first()
                 rating.characteristics.append(characteristic)
 
             db.session.add(rating)
@@ -123,9 +132,9 @@ def rate():
         return jsonify({ 'error': 'Error #011: Could not add rating.' })
 
 @app.route('/api/characteristics/save', methods=['POST'])
-def rate():
+def addCharacteristic():
     try:
-        characteristic_name = request.headers.get('characteristic_name')
+        characteristic_name = request.json.get('characteristic_name')
 
         if characteristic_name:
             characteristic = Characteristic(characteristic_name=characteristic_name)
@@ -142,8 +151,8 @@ def rate():
 @app.route('/api/ratings/retrieve', methods=['GET'])
 def getRating():
     try:
-        user_id = request.headers.get('user_id')
-        bottle_id = request.headers.get('bottle_id')
+        user_id = request.args.get('user_id')
+        bottle_id = request.args.get('bottle_id')
 
         # get user's rating/tasting notes for specific bottle
         if bottle_id and user_id:
