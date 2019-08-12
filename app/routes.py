@@ -161,10 +161,12 @@ def getRating():
                 'rating_id': result.rating_id,
                 'stars': result.stars,
                 'description': result.description,
-                'characteristics': result.characteristics
             }
 
-            return jsonify({ 'success': 'Rating retrieved.', 'rating': rating })
+            results = db.session.query(Characteristic.characteristic_name).join(rating_characteristics).join(Rating).filter(Rating.rating_id == result.rating_id).all()
+            characteristics = [result[0] for result in results]
+
+            return jsonify({ 'success': 'Rating retrieved.', 'rating': rating, 'characteristics': characteristics })
         # get star ratings for specific bottle, or list of who rated it
         elif bottle_id:
             results = Rating.query.filter_by(bottle_id=bottle_id).all()
