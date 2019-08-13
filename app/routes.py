@@ -1,7 +1,7 @@
 from app import app, db
 from flask import request, jsonify
 from app.models import Party, User, Bottle, Rating, Characteristic, party_guests, rating_characteristics
-from datetime import datetime
+from datetime import datetime, timedelta
 
 @app.route('/')
 def index():
@@ -11,11 +11,16 @@ def index():
 def createParty():
     try:
         data = request.json
-
+        
         if None not in data.values():
+            start = datetime.strptime(f'{data["date"]} {data["start_time"]}', '%Y-%m-%d %H:%M')
+            end = datetime.strptime(f'{data["date"]} {data["end_time"]}', '%Y-%m-%d %H:%M')
+            if datetime.strptime(data['start_time'], '%H:%M') > datetime.strptime(data['end_time'], '%H:%M'):
+                end += timedelta(days=1)
+
             party = Party(
-                start=data.get('start'),
-                end=data.get('end'),
+                start=start,
+                end=end,
                 party_name=data.get('party_name'),
                 location=data.get('location'),
                 host_id=data.get('host_id')
