@@ -12,7 +12,7 @@ def createParty():
     try:
         data = request.json
         
-        if None not in data.values():
+        if None not in data.values() and "" not in data.values():
             start = datetime.strptime(f'{data["date"]} {data["start_time"]}', '%Y-%m-%d %H:%M')
             end = datetime.strptime(f'{data["date"]} {data["end_time"]}', '%Y-%m-%d %H:%M')
             if datetime.strptime(data['start_time'], '%H:%M') > datetime.strptime(data['end_time'], '%H:%M'):
