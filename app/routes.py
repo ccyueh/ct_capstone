@@ -1,8 +1,9 @@
 from app import app, db
-from flask import request, jsonify, redirect, url_for
+from flask import request, jsonify
 from app.models import Party, User, Bottle, Rating, Characteristic, party_guests, rating_characteristics
 from datetime import datetime, timedelta
-from flask_login import current_user, login_user, logout_user, login_required
+import time
+import jwt
 
 @app.route('/')
 def index():
@@ -258,16 +259,16 @@ def getBottles():
 def login():
     try:
         token = request.headers.get('token')
-
-         # decode token back to dictionary
+         
+        # decode token back to dictionary
         data = jwt.decode(
             token,
             app.config['SECRET_KEY'],
             algorithm=['HS256']
         )
-
+        
         user = User.query.filter_by(email=data.get('email')).first()
-        if user is None or not user.check_password(password):
+        if user is None or not user.check_password(data.get('password')):
             return jsonify({ 'error': 'Error #019: Incorrect email and/or password.' })
 
         return jsonify({ 'success': 'You are now logged in.', 'token': user.get_token() })
