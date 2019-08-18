@@ -1,7 +1,8 @@
 from app import app, db
-from flask import request, jsonify
+from flask import request, jsonify, redirect, url_for
 from app.models import Party, User, Bottle, Rating, Characteristic, party_guests, rating_characteristics
 from datetime import datetime, timedelta
+from flask_login import current_user, login_user, logout_user, login_required
 
 @app.route('/')
 def index():
@@ -35,10 +36,17 @@ def createParty():
     except:
         return jsonify({ 'error': 'Error #002: Invalid parameters.' })
 
-@app.route('/api/register', methods=['POST'])
+@app.route('/authenticate/register', methods=['POST'])
 def register():
     try:
-        data = request.json
+        token = request.headers.get('token')
+
+        # decode token back to dictionary
+        data = jwt.decode(
+            token,
+            app.config['SECRET_KEY'],
+            algorithm=['HS256']
+        )
 
         if data.get('email') and data.get('password') and data.get('password2'):
             # check if re-typed password matches
@@ -85,7 +93,7 @@ def addBottle():
     # user adds bottle for party before party begins
     try:
         data = request.json
-
+        print(data)
         if data.get('label_img') and data.get('party_id') and data.get('user_id'):
             if Bottle.query.filter_by(party_id=data.get('party_id'), user_id=data.get('user_id')).first():
                 return jsonify({ 'error': 'Error #008: User already added bottle for this party.' })
@@ -245,3 +253,24 @@ def getBottles():
             return jsonify({ 'error': 'Error #018: Missing parameters.' })
     except:
         return jsonify({ 'error': 'Error #019: Could not find bottles.' })
+
+@app.route('/authenticate/login', methods=['GET'])
+def login():
+    try:
+        token = request.headers.get('token')
+
+         # decode token back to dictionary
+        data = jwt.decode(
+            token,
+            app.config['SECRET_KEY'],
+            algorithm=['HS256']
+        )
+
+        user = User.query.filter_by(email=data.get('email')).first()
+        if user is None or not user.check_password(password):
+            return jsonify({ 'error': 'Error #019: Incorrect email and/or password.' })
+
+        return jsonify({ 'success': 'You are now logged in.', 'token': user.get_token() })
+    except:
+        return jsonify({ 'error': 'Error #019: Could not log in.' })
+ 

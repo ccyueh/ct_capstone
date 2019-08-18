@@ -2,6 +2,8 @@ from app import app, db, login
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
+from time import time
+import jwt 
 
 party_guests = db.Table('party_guests',
 db.Column('party_id', db.Integer, db.ForeignKey('party.party_id')),
@@ -39,6 +41,26 @@ class User(db.Model, UserMixin):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
+    # create a method for generating and then verifying a token
+    def get_token(self, expires_in=86400):
+        return jwt.encode(
+            { 'user_id': self.user_id, 'exp': time() + expires_in },
+            app.config['SECRET_KEY'],
+            algorithm='HS256'
+        ).decode('utf-8')
+
+    @staticmethod
+    def verify_token(token):
+        try:
+            user_id = jwt.decode(
+                token,
+                app.config['SECRET_KEY'],
+                algorithm=['HS256']
+            )['user_id']
+        except:
+            return
+        return User.query.get(user_id)
+
 class Bottle(db.Model):
     bottle_id = db.Column(db.Integer, primary_key=True)
     producer = db.Column(db.String(100))
@@ -68,3 +90,8 @@ class Rating(db.Model):
 class Characteristic(db.Model):
     characteristic_id = db.Column(db.Integer, primary_key=True)
     characteristic_name = db.Column(db.String(50))
+
+@login.request_loader
+def load_user(id):
+    return User.query.get(int(id))
+
