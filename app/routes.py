@@ -94,7 +94,7 @@ def addBottle():
     # user adds bottle for party before party begins
     try:
         data = request.json
-        print(data)
+        
         if data.get('label_img') and data.get('party_id') and data.get('user_id'):
             if Bottle.query.filter_by(party_id=data.get('party_id'), user_id=data.get('user_id')).first():
                 return jsonify({ 'error': 'Error #008: User already added bottle for this party.' })
@@ -171,14 +171,19 @@ def getRating():
         # get user's rating/tasting notes for specific bottle
         if bottle_id and user_id:
             result = Rating.query.filter_by(user_id=user_id, bottle_id=bottle_id).first()
-            rating = {
-                'rating_id': result.rating_id,
-                'stars': result.stars,
-                'description': result.description,
-            }
+            if result:
+                rating = {
+                    'bottle_id': result.bottle_id,
+                    'rating_id': result.rating_id,
+                    'stars': result.stars,
+                    'description': result.description,
+                }
 
-            results = db.session.query(Characteristic.characteristic_name).join(rating_characteristics).join(Rating).filter(Rating.rating_id == result.rating_id).all()
-            characteristics = [result[0] for result in results]
+                results = db.session.query(Characteristic.characteristic_name).join(rating_characteristics).join(Rating).filter(Rating.rating_id == result.rating_id).all()
+                characteristics = [result[0] for result in results]
+            else:
+                rating = {}
+                characteristics = []
 
             return jsonify({ 'success': 'Rating retrieved.', 'rating': rating, 'characteristics': characteristics })
         # get star ratings for specific bottle, or list of who rated it
@@ -219,7 +224,8 @@ def getParty():
                 'start': result.start,
                 'end': result.end,
                 'party_name': result.party_name,
-                'location': result.location
+                'location': result.location,
+                'host_id': result.host_id
             }
             parties.append(party)
 
