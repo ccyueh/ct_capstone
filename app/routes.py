@@ -281,4 +281,23 @@ def login():
         return jsonify({ 'success': 'You are now logged in.', 'token': user.get_token() })
     except:
         return jsonify({ 'error': 'Error #019: Could not log in.' })
+
+@app.route('/api/users/retrieve', methods=['GET'])
+def getUser():
+    try:
+        user_id = request.args.get('user_id')
+        if user_id:
+            result = User.query.filter_by(user_id=user_id).first()
+            user = {
+                'first_name': result.first_name,
+                'last_name': result.last_name,
+                'email': result.email,
+                'password_hash': result.password_hash 
+            }
+        else:
+            return jsonify({ 'error': 'Error #016: Missing user ID.' })
+
+        return jsonify({ 'success': 'User info retrieved.', 'user': user })
+    except:
+        return jsonify({ 'error': 'Error #017: Could not find user.' })
  
