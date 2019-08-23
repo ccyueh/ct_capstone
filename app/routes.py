@@ -305,10 +305,13 @@ def getBottles():
     # get bottle information for all bottles for a party
     try:
         party_id = request.args.get('party_id')
+        user_id = request.args.get('user_id')
 
+        bottles = []
         if party_id:
             results = Bottle.query.filter_by(party_id=party_id).all()
-            bottles = []
+            if user_id:
+                results = Bottle.query.filter_by(party_id=party_id, user_id=user_id).all()
 
             for result in results:
                 bottle = {
@@ -320,6 +323,9 @@ def getBottles():
                     'user_id': result.user_id
                 }
                 bottles.append(bottle)
+            
+            if len(bottles) == 1:
+                bottles = bottles[0]
 
             return jsonify({ 'success': 'Retrieved bottles.', 'bottles': bottles })
         else:
