@@ -111,10 +111,11 @@ def createParty():
                 party.voting = voting
             if reveal:
                 party.reveal = reveal
-            db.session.add(party)
-            db.session.commit()
+            if voting or reveal:
+                db.session.add(party)
+                db.session.commit()
 
-            return jsonify({ 'success': 'Voting/bottle reveal status changed.' })
+                return jsonify({ 'success': 'Voting/bottle reveal status changed.' })
 
         if None not in data.values() and "" not in data.values():
             # modify existing party - edit details, start/stop voting, reveal bottles
