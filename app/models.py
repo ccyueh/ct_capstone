@@ -3,7 +3,7 @@ from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 from time import time
-import jwt 
+import jwt
 
 party_guests = db.Table('party_guests',
 db.Column('party_id', db.Integer, db.ForeignKey('party.party_id')),
@@ -21,6 +21,8 @@ class Party(db.Model):
     end = db.Column(db.DateTime)
     party_name = db.Column(db.String(100))
     location = db.Column(db.String(100))
+    voting = db.Column(db.Boolean, default=False)
+    reveal = db.Column(db.Boolean, default=False)
 
     host_id = db.Column(db.Integer, db.ForeignKey('user.user_id'))
     user = db.relationship('User', backref=db.backref('party', lazy='joined'))
@@ -31,7 +33,7 @@ class User(db.Model, UserMixin):
     user_id = db.Column(db.Integer, primary_key=True)
     first_name = db.Column(db.String(50))
     last_name = db.Column(db.String(50))
-    #profile_img = db.Column(db.String(500))
+    profile_img = db.Column(db.String(500), default="http://placehold.it/50x50")
     email = db.Column(db.String(120), unique=True, index=True)
     password_hash = db.Column(db.String(256))
 
@@ -90,8 +92,3 @@ class Rating(db.Model):
 class Characteristic(db.Model):
     characteristic_id = db.Column(db.Integer, primary_key=True)
     characteristic_name = db.Column(db.String(50))
-
-@login.request_loader
-def load_user(id):
-    return User.query.get(int(id))
-
