@@ -13,25 +13,25 @@ def index():
 def register():
     try:
         token = request.headers.get('token')
-
+        
         # decode token back to dictionary
         data = jwt.decode(
         token,
         app.config['SECRET_KEY'],
         algorithm=['HS256']
         )
-
+        
         if data.get('email') and data.get('password') and data.get('password2'):
             # check if re-typed password matches
             if data.get('password') == data.get('password2'):
                 user = User(
-                first_name=data.get('first_name'),
-                last_name=data.get('last_name'),
+                first_name=data.get('first'),
+                last_name=data.get('last'),
                 email=data.get('email')
                 )
-
+                
                 user.set_password(data.get('password'))
-
+                
                 db.session.add(user)
                 db.session.commit()
                 return jsonify({ 'success': 'User registered.' })
@@ -57,7 +57,7 @@ def login():
         user = User.query.filter_by(email=data.get('email')).first()
         if user is None or not user.check_password(data.get('password')):
             return jsonify({ 'error': 'Error #019: Incorrect email and/or password.' })
-
+        else:
             return jsonify({ 'success': 'You are now logged in.', 'token': user.get_token() })
     except:
         return jsonify({ 'error': 'Error #019: Could not log in.' })
@@ -99,12 +99,10 @@ def createParty():
         if date:
             if start_time:
                 start = datetime.strptime(f'{date} {start_time}', '%Y-%m-%d %H:%M')
-                start_12h = datetime.strptime(start_time, '%H:%M')
             if end_time:
                 end = datetime.strptime(f'{date} {end_time}', '%Y-%m-%d %H:%M')
-                end_12h = datetime.strptime(end_time, '%H:%M')
             if start_time and end_time:
-                if start_12h > end_12h:
+                if start_time > end_time:
                     end += timedelta(days=1)
 
         if party_id:
@@ -120,7 +118,7 @@ def createParty():
 
         if None not in data.values() and "" not in data.values():
             # modify existing party - edit details, start/stop voting, reveal bottles
-            if party:
+            if party_id:
                 party.start = start
                 party.end = end
                 party.party_name = party_name
@@ -133,7 +131,7 @@ def createParty():
                     end=end,
                     party_name=party_name,
                     location=location,
-                    host_id=host_id)
+                    host_id=host_id
                 )
 
             db.session.add(party)
