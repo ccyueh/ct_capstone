@@ -81,6 +81,41 @@ def getUser():
     except:
         return jsonify({ 'error': 'Error #017: Could not find user.' })
 
+@app.route('/api/users/save', methods=['POST'])
+def editProfile():
+    try:
+        token = request.headers.get('token')
+
+        # decode token back to dictionary
+        data = jwt.decode(
+        token,
+        app.config['SECRET_KEY'],
+        algorithm=['HS256']
+        )
+
+        user_id = data.get('user_id')
+        first_name = data.get('first')
+        last_name = data.get('last')
+        password = data.get('password')
+        password2 = data.get('password2')
+        
+        user = User.query.filter_by(user_id=user_id).first()
+        user.first_name = first_name
+        user.last_name = last_name
+        if password and password2:
+            # check if re-typed password matches
+            if password == password2:
+                user.set_password(password)
+            else:
+                return jsonify({ 'error': 'Error #003: Password and re-typed password must match.' })
+
+        db.session.add(user)
+        db.session.commit()
+        
+        return jsonify({ 'success': 'Profile edited.' })
+    except:
+        return jsonify({ 'error': 'Error #004444: Invalid parameters.' })
+
 @app.route('/api/parties/save', methods=['POST'])
 def createParty():
     try:
