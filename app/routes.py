@@ -360,9 +360,6 @@ def getBottles():
                 }
                 bottles.append(bottle)
             
-            if len(bottles) == 1:
-                bottles = bottles[0]
-
             return jsonify({ 'success': 'Retrieved bottles.', 'bottles': bottles })
         else:
             return jsonify({ 'error': 'Error #018: Missing parameters.' })
