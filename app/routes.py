@@ -402,3 +402,20 @@ def getRating():
             return jsonify({ 'error': 'Error #014: Missing parameters.' })
     except:
         return jsonify({ 'error': 'Error #015: Could not find rating.' })
+
+@app.route('/api/parties/delete', methods=['DELETE'])
+def delete():
+    try:
+        party_id = request.args.get('party_id')
+
+        if not party_id:
+            return jsonify({ 'error': 'Error #006: Party ID required for deletion' })
+
+        party = Party.query.filter_by(party_id=party_id).first()
+
+        db.session.delete(party)
+        db.session.commit()
+
+        return jsonify({ 'success': 'Party canceled.' })
+    except:
+        return jsonify({ 'error': 'Error #007: Could not delete event' })
