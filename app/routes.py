@@ -412,7 +412,7 @@ def getRating():
         # get star ratings for specific bottle, or list of who rated it
         elif bottle_id:
             results = Rating.query.filter_by(bottle_id=bottle_id).all()
-            star_ratings = [result.stars for result in results]
+            star_ratings = [float(result.stars) for result in results]
             rated_by = [result.user_id for result in results]
 
             return jsonify({ 'success': 'Rating info retrieved.', 'star_ratings': star_ratings, 'rated_by': rated_by })
