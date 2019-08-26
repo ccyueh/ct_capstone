@@ -71,6 +71,7 @@ def getUser():
             user = {
                 'first_name': result.first_name,
                 'last_name': result.last_name,
+                'profile_img': result.profile_img,
                 'email': result.email,
                 'password_hash': result.password_hash
             }
