@@ -1,6 +1,6 @@
 from app import app, db
 from flask import request, jsonify
-from app.models import Party, User, Bottle, Rating, Term, party_guests, party_terms, rating_terms
+from app.models import Party, User, Bottle, Rating, party_guests
 from datetime import datetime, timedelta
 import time
 import jwt
@@ -249,14 +249,12 @@ def addBottle():
 def rate():
     try:
         data = request.json
-        print(data) 
+        
         rating_id = data.get('rating_id')
         stars = data.get('stars')
         description = data.get('description')
         user_id = data.get('user_id')
         bottle_id = data.get('bottle_id')
-        #terms = data.get('terms')
-        terms = []
 
         if stars and user_id and bottle_id:
             if rating_id:
@@ -264,7 +262,6 @@ def rate():
 
                 rating.stars = stars
                 rating.description = description
-                rating.terms = []
 
             else:
                 rating = Rating(
@@ -272,10 +269,6 @@ def rate():
                     description=description,
                     user_id=user_id,
                     bottle_id=bottle_id)
-
-            for term_id in terms:
-                term = Term.query.filter_by(term_id=term_id).first()
-                rating.terms.append(term)
 
             db.session.add(rating)
             db.session.commit()
@@ -285,47 +278,6 @@ def rate():
             return jsonify({ 'error': 'Error #010: Missing parameters.' })
     except:
         return jsonify({ 'error': 'Error #011: Could not add rating.' })
-
-@app.route('/api/terms/save', methods=['POST'])
-def addTerm():
-    try:
-        term_name = request.json.get('term_name')
-
-        if term_name:
-            term = Term(term_name=term_name)
-
-            db.session.add(term)
-            db.session.commit()
-
-            return jsonify({ 'success': 'Tasting note added.' })
-        else:
-            return jsonify({ 'error': 'Error #012: Missing parameters.' })
-    except:
-        return jsonify({ 'error': 'Error #013: Could not add tasting note.' })
-
-@app.route('/api/terms/party/save', methods=['POST'])
-def editTerms():
-    try:
-        data = request.json
-
-        party_id = data.get('rating_id')
-        terms = data.get('terms')
-
-        if party_id and terms:
-            party = Party.query.filter_by(party_id=party_id).first()
-            
-            for term_id in terms:
-                term = Term.query.filter_by(term_id=term_id).first()
-                party.terms.append(term)
-
-            db.session.add(party)
-            db.session.commit()
-
-            return jsonify({ 'success': 'Tasting notes added/modified.' })
-        else:
-            return jsonify({ 'error': 'Error #010: Missing parameters.' })
-    except:
-        return jsonify({ 'error': 'Error #011: Could not add tasting notes.' })
 
 @app.route('/api/parties/retrieve', methods=['GET'])
 def getParty():
@@ -411,7 +363,6 @@ def getRating():
                     'rating_id': result.rating_id,
                     'stars': float(result.stars),
                     'description': result.description,
-                    'terms': {term.term_id: term.term_name.title() for term in result.terms}
                 }
 
                 return jsonify({ 'success': 'Rating retrieved.', 'rating': rating})
@@ -426,27 +377,6 @@ def getRating():
             return jsonify({ 'error': 'Error #014: Missing parameters.' })
     except:
         return jsonify({ 'error': 'Error #015: Could not find rating.' })
-
-@app.route('/api/terms/retrieve', methods=['GET'])
-def getTerms():
-    try:
-        party_id = request.args.get('party_id')
-        term_id = request.args.get('term_id')
-
-        if term_id and not party_id:
-            term = Term.query.filter_by(term_id=term_id).first()
-
-            return jsonify({ 'success': 'Tasting note retrieved.', 'term': term.term_name })
-        elif party_id and not term_id:
-            party = Party.query.filter_by(party_id=party_id).first()
-            terms = db.session.query(Term).join(party_terms).join(Party).filter(Party.party_id == party.party_id).all()
-            term_ids = {term.term_id: term.term_name.title() for term in terms}
-            
-            return jsonify({ 'success': 'Tasting notes retrieved.', 'terms': term_ids }) 
-        else:
-            return jsonify({ 'error': 'Term or party ID required.' })
-    except:
-        return jsonify({ 'error': 'Error #015: Could not find terms.' })
 
 @app.route('/api/parties/delete', methods=['DELETE'])
 def delete():
