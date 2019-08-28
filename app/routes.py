@@ -131,7 +131,8 @@ def createParty():
         host_id = data.get('host_id')
         voting = data.get('voting')
         reveal = data.get('reveal')
-
+        voting_end = data.get('voting_end')
+        
         if date:
             if start_time:
                 start = datetime.strptime(f'{date} {start_time}', '%Y-%m-%d %H:%M')
@@ -140,14 +141,16 @@ def createParty():
             if start_time and end_time:
                 if start_time > end_time:
                     end += timedelta(days=1)
-
+        
         if party_id:
             party = Party.query.filter_by(party_id=party_id).first()
-            if voting:
+            if voting != None:
                 party.voting = voting
+                if voting_end:
+                    party.voting_end = datetime.strptime(f'{voting_end[0:10]} {voting_end[11:19]}', '%Y-%m-%d %H:%M:%S')
             if reveal:
                 party.reveal = reveal
-            if voting or reveal:
+            if voting != None or reveal:
                 db.session.add(party)
                 db.session.commit()
 
@@ -246,13 +249,14 @@ def addBottle():
 def rate():
     try:
         data = request.json
-        
+        print(data) 
         rating_id = data.get('rating_id')
         stars = data.get('stars')
         description = data.get('description')
         user_id = data.get('user_id')
         bottle_id = data.get('bottle_id')
-        terms = data.get('terms')
+        #terms = data.get('terms')
+        terms = []
 
         if stars and user_id and bottle_id:
             if rating_id:
@@ -352,7 +356,8 @@ def getParty():
                 'location': result.location,
                 'host_id': result.host_id,
                 'voting': result.voting,
-                'reveal': result.reveal
+                'reveal': result.reveal,
+                'voting_end': result.voting_end
             }
             parties.append(party)
 
@@ -366,28 +371,28 @@ def getBottles():
     # get bottle information for all bottles for a party
     try:
         party_id = request.args.get('party_id')
-        user_id = request.args.get('user_id')
-
+        
         bottles = []
-        if party_id:
-            results = Bottle.query.filter_by(party_id=party_id).all()
-            if user_id:
-                results = Bottle.query.filter_by(party_id=party_id, user_id=user_id).all()
-
-            for result in results:
-                bottle = {
-                    'bottle_id': result.bottle_id,
-                    'producer': result.producer,
-                    'bottle_name': result.bottle_name,
-                    'vintage': result.vintage,
-                    'label_img': result.label_img,
-                    'user_id': result.user_id
-                }
-                bottles.append(bottle)
-            
-            return jsonify({ 'success': 'Retrieved bottles.', 'bottles': bottles })
-        else:
+        if not party_id:
             return jsonify({ 'error': 'Error #018: Missing parameters.' })
+
+        if 'user_id' not in list(request.args.keys()):
+            results = Bottle.query.filter_by(party_id=party_id).all()
+        else:
+            results = Bottle.query.filter_by(party_id=party_id, user_id=request.args.get('user_id')).all()
+
+        for result in results:
+            bottle = {
+                'bottle_id': result.bottle_id,
+                'producer': result.producer,
+                'bottle_name': result.bottle_name,
+                'vintage': result.vintage,
+                'label_img': result.label_img,
+                'user_id': result.user_id
+            }
+            bottles.append(bottle)
+            
+        return jsonify({ 'success': 'Retrieved bottles.', 'bottles': bottles })
     except:
         return jsonify({ 'error': 'Error #019: Could not find bottles.' })
 

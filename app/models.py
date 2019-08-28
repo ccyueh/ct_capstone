@@ -3,6 +3,7 @@ from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 from time import time
+from datetime import datetime
 import jwt
 
 party_guests = db.Table('party_guests',
@@ -28,6 +29,7 @@ class Party(db.Model):
     location = db.Column(db.String(100))
     voting = db.Column(db.Boolean, default=False)
     reveal = db.Column(db.Boolean, default=False)
+    voting_end = db.Column(db.DateTime, default=datetime.now())
 
     host_id = db.Column(db.Integer, db.ForeignKey('user.user_id'))
     user = db.relationship('User', backref=db.backref('party', lazy='joined'))
