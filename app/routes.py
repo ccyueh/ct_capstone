@@ -166,12 +166,15 @@ def createParty():
 
             # create new party
             else:
+                # set voting_end to after the party
+                voting_end = start + timedelta(days=365)
                 party = Party(
                     start=start,
                     end=end,
                     party_name=party_name,
                     location=location,
-                    host_id=host_id
+                    host_id=host_id,
+                    voting_end=voting_end
                 )
 
             db.session.add(party)
