@@ -1,9 +1,14 @@
 from app import app, db
+import os
 from flask import request, jsonify
 from app.models import Party, User, Bottle, Rating, party_guests
 from datetime import datetime, timedelta
 import time
 import jwt
+from werkzeug.utils import secure_filename
+
+UPLOAD_FOLDER = os.path.abspath(os.path.dirname(__file__)) + '/static/images/'
+ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
 
 @app.route('/')
 def index():
@@ -397,3 +402,18 @@ def delete():
         return jsonify({ 'success': 'Party canceled.' })
     except:
         return jsonify({ 'error': 'Error #007: Could not delete event' })
+
+@app.route('/upload', methods=['POST'])
+def fileUpload():
+    try:
+        file = request.files.get('file')
+        if file:
+            filename = secure_filename(file.filename)
+            destination = UPLOAD_FOLDER + filename
+            file.save(destination)
+
+            return jsonify({ 'success': 'Image uploaded.', 'filename' : 'static/images/' + filename })
+        else:
+            return jsonify({ 'error': 'Error #007: Could not find image.' })
+    except:
+        return jsonify({ 'error': 'Error #007: Could not upload image.' })
