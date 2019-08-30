@@ -122,6 +122,22 @@ def editProfile():
     except:
         return jsonify({ 'error': 'Error #004444: Invalid parameters.' })
 
+@app.route('/api/users/img/save', methods=['POST'])
+def profileImg():
+    data = request.json
+
+    user_id = data.get('user_id')
+    profile_img = data.get('profile_img')
+
+    if user_id and profile_img:
+        user = User.query.filter_by(user_id=user_id).first()
+        user.profile_img = profile_img
+        
+        db.session.add(user)
+        db.session.commit()
+
+        return jsonify({ 'success': 'Profile edited.' })
+ 
 @app.route('/api/parties/save', methods=['POST'])
 def createParty():
     try:
