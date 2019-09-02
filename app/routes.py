@@ -136,7 +136,27 @@ def profileImg():
         db.session.add(user)
         db.session.commit()
 
-        return jsonify({ 'success': 'Profile edited.' })
+        return jsonify({ 'success': 'Profile image added to database.', 'redirect': '../profile' })
+
+@app.route('/api/bottles/img/save', methods=['POST'])
+def bottleImg():
+    data = request.json
+
+    user_id = data.get('user_id')
+    party_id = data.get('party_id')
+    label_img = data.get('label_img')
+
+    if user_id and party_id and label_img:
+        bottle = Bottle.query.filter_by(user_id=user_id, party_id=party_id).first()
+        if bottle:
+            bottle.label_img = label_img
+        else:
+            bottle = Bottle(label_img=label_img)
+
+        db.session.add(bottle)
+        db.session.commit()
+
+        return jsonify({ 'success': 'Bottle image added to database.', 'redirect': '../bottle/add' })
  
 @app.route('/api/parties/save', methods=['POST'])
 def createParty():
@@ -237,28 +257,15 @@ def addBottle():
         producer = data.get('producer')
         bottle_name = data.get('bottle_name')
         vintage = data.get('vintage')
-        label_img = data.get('label_img')
         party_id = data.get('party_id')
         user_id = data.get('user_id')
 
-        if label_img and party_id and user_id:
-            if bottle_id:
-                bottle = Bottle.query.filter_by(bottle_id=bottle_id).first()
+        if party_id and user_id and bottle_id:
+            bottle = Bottle.query.filter_by(bottle_id=bottle_id).first()
 
-                bottle.producer = producer
-                bottle.bottle_name = bottle_name
-                bottle.vintage = vintage
-                bottle.label_img = label_img
-
-            else:
-                bottle = Bottle(
-                    producer=producer,
-                    bottle_name=bottle_name,
-                    vintage=vintage,
-                    label_img=label_img,
-                    party_id=party_id,
-                    user_id=user_id
-                )
+            bottle.producer = producer
+            bottle.bottle_name = bottle_name
+            bottle.vintage = vintage
 
             db.session.add(bottle)
             db.session.commit()
