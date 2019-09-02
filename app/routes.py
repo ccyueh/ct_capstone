@@ -397,6 +397,8 @@ def getRating():
                 }
 
                 return jsonify({ 'success': 'Rating retrieved.', 'rating': rating})
+            else:
+                return jsonify({ 'success': 'Rating not found.', 'rating': {} }) 
         # get star ratings for specific bottle, or list of who rated it
         elif bottle_id:
             results = Rating.query.filter_by(bottle_id=bottle_id).all()
