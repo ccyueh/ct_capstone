@@ -30,7 +30,7 @@ class User(db.Model, UserMixin):
     user_id = db.Column(db.Integer, primary_key=True)
     first_name = db.Column(db.String(50))
     last_name = db.Column(db.String(50))
-    profile_img = db.Column(db.String(500), default="http://placehold.it/50x50")
+    profile_img = db.Column(db.String(100))
     email = db.Column(db.String(120), unique=True, index=True)
     password_hash = db.Column(db.String(256))
 
@@ -65,7 +65,7 @@ class Bottle(db.Model):
     producer = db.Column(db.String(100))
     bottle_name = db.Column(db.String(100))
     vintage = db.Column(db.Integer)
-    label_img = db.Column(db.String(500))
+    label_img = db.Column(db.String(100))
 
     party_id = db.Column(db.Integer, db.ForeignKey('party.party_id'))
     party = db.relationship('Party', backref=db.backref('bottle', lazy='joined'))
