@@ -151,7 +151,11 @@ def bottleImg():
         if bottle:
             bottle.label_img = label_img
         else:
-            bottle = Bottle(label_img=label_img)
+            bottle = Bottle(
+                label_img=label_img,
+                user_id=user_id,
+                party_id=party_id
+            )
 
         db.session.add(bottle)
         db.session.commit()
