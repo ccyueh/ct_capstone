@@ -64,7 +64,7 @@ class Bottle(db.Model):
     bottle_id = db.Column(db.Integer, primary_key=True)
     producer = db.Column(db.String(100))
     bottle_name = db.Column(db.String(100))
-    vintage = db.Column(db.Integer)
+    vintage = db.Column(db.String(4))
     label_img = db.Column(db.String(100))
 
     party_id = db.Column(db.Integer, db.ForeignKey('party.party_id'))
