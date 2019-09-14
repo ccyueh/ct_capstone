@@ -136,7 +136,7 @@ def profileImg():
         db.session.add(user)
         db.session.commit()
 
-        return jsonify({ 'success': 'Profile image added to database.', 'redirect': '../profile' })
+        return jsonify({ 'success': 'Profile image added to database.' })
 
 @app.route('/api/bottles/img/save', methods=['POST'])
 def bottleImg():
@@ -160,7 +160,7 @@ def bottleImg():
         db.session.add(bottle)
         db.session.commit()
 
-        return jsonify({ 'success': 'Bottle image added to database.', 'redirect': '../bottle/add' })
+        return jsonify({ 'success': 'Bottle image added to database.' })
  
 @app.route('/api/parties/save', methods=['POST'])
 def createParty():
@@ -263,10 +263,11 @@ def addBottle():
         vintage = data.get('vintage')
         party_id = data.get('party_id')
         user_id = data.get('user_id')
-
+        print('data', data)
         if party_id and user_id and bottle_id:
+            print('pre-bottle')
             bottle = Bottle.query.filter_by(bottle_id=bottle_id).first()
-
+            print('bottle',bottle)
             bottle.producer = producer
             bottle.bottle_name = bottle_name
             bottle.vintage = vintage
