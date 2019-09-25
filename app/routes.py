@@ -193,9 +193,9 @@ def createParty():
                 party.voting = voting
                 if voting_end:
                     party.voting_end = datetime.strptime(f'{voting_end[0:10]} {voting_end[11:19]}', '%Y-%m-%d %H:%M:%S')
-            if reveal:
+            if reveal != None:
                 party.reveal = reveal
-            if voting != None or reveal:
+            if voting != None or reveal != None:
                 db.session.add(party)
                 db.session.commit()
 
