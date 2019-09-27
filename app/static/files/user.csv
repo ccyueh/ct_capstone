@@ -1,4 +1,3 @@
-user_id,first_name,last_name,profile_img,email,password_hash
 1,Mary,Jones,static/images/profile_0.jpg,mary@jones.com,pbkdf2:sha256:150000$4dPJGvys$2d578da09578faab2f5b6e855a7682e564a12dd6e2add65a07d1f51dfac45c47
 2,John,Smith,static/images/profile_0.jpg,john@smith.com,pbkdf2:sha256:150000$vBhomFYY$aa26916fc3424e99ecebb40fd1c982b04e1255d3dff5aa52922fee5d83e01b36
 3,Bob,Williams,static/images/profile_0.jpg,bob@williams.com,pbkdf2:sha256:150000$6qSjINi5$08d1fe5cf15bbe234d1a2c82a7a6c53d31e5695b2eb8b910bed7fe233bce9bf5

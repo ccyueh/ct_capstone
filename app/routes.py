@@ -26,7 +26,7 @@ def register():
         algorithm=['HS256']
         )
         
-        if data.get('email') and data.get('password') and data.get('password2'):
+        if None not in data.values() and "" not in data.values():
             # check if re-typed password matches
             if data.get('password') == data.get('password2'):
                 user = User(
@@ -43,7 +43,7 @@ def register():
             else:
                 return jsonify({ 'error': 'Error #003: Password and re-typed password must match.' })
         else:
-            return jsonify({ 'error': 'Error #004: E-mail and password fields are required.' })
+            return jsonify({ 'error': 'Error #004: All fields are required.' })
     except:
         return jsonify({ 'error': 'Error #005: Invalid parameters.' })
 
@@ -364,18 +364,21 @@ def getBottles():
             return jsonify({ 'error': 'Error #018: Missing parameters.' })
 
         if 'user_id' not in list(request.args.keys()):
-            results = Bottle.query.filter_by(party_id=party_id).all()
+            results = db.session.query(Bottle, User.first_name, User.last_name, User.email).join(User).filter(Bottle.user_id == User.user_id, Bottle.party_id == party_id).all()
         else:
-            results = Bottle.query.filter_by(party_id=party_id, user_id=request.args.get('user_id')).all()
-
+            results = db.session.query(Bottle, User.first_name, User.last_name, User.email).join(User).filter(Bottle.user_id == User.user_id, Bottle.party_id == party_id, Bottle.user_id == request.args.get('user_id')).all()
+ 
         for result in results:
             bottle = {
-                'bottle_id': result.bottle_id,
-                'producer': result.producer,
-                'bottle_name': result.bottle_name,
-                'vintage': result.vintage,
-                'label_img': result.label_img,
-                'user_id': result.user_id
+                'bottle_id': result[0].bottle_id,
+                'producer': result[0].producer,
+                'bottle_name': result[0].bottle_name,
+                'vintage': result[0].vintage,
+                'label_img': result[0].label_img,
+                'user_id': result[0].user_id,
+                'first_name': result.first_name,
+                'last_name': result.last_name,
+                'email': result.email
             }
             bottles.append(bottle)
             
