@@ -8,3 +8,5 @@ class Config(object):
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'postgresql://postgres:christine@localhost:5432/sipper'
+
+    CLOUDINARY_URL = os.environ.get('CLOUDINARY_URL')

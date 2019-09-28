@@ -6,8 +6,8 @@ from datetime import datetime, timedelta
 import time
 import jwt
 from werkzeug.utils import secure_filename
+from cloudinary.uploader import upload
 
-UPLOAD_FOLDER = os.path.abspath(os.path.dirname(__file__)) + '/static/images/'
 ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
 
 @app.route('/')
@@ -76,7 +76,6 @@ def getUser():
             user = {
                 'first_name': result.first_name,
                 'last_name': result.last_name,
-                'profile_img': result.profile_img,
                 'email': result.email,
                 'password_hash': result.password_hash
             }
@@ -121,22 +120,6 @@ def editProfile():
         return jsonify({ 'success': 'Profile edited.' })
     except:
         return jsonify({ 'error': 'Error #004444: Invalid parameters.' })
-
-@app.route('/api/users/img/save', methods=['POST'])
-def profileImg():
-    data = request.json
-
-    user_id = data.get('user_id')
-    profile_img = data.get('profile_img')
-
-    if user_id and profile_img:
-        user = User.query.filter_by(user_id=user_id).first()
-        user.profile_img = profile_img
-        
-        db.session.add(user)
-        db.session.commit()
-
-        return jsonify({ 'success': 'Profile image added to database.' })
 
 @app.route('/api/bottles/img/save', methods=['POST'])
 def bottleImg():
@@ -436,15 +419,14 @@ def delete():
         return jsonify({ 'error': 'Error #007: Could not delete event' })
 
 @app.route('/upload', methods=['POST'])
-def fileUpload():
+def cloudUpload():
     try:
-        file = request.files.get('file')
-        if file:
-            filename = secure_filename(file.filename)
-            destination = UPLOAD_FOLDER + filename
-            file.save(destination)
+        file_upload = request.files.get('file')
+        if file_upload:
+            upload_result = upload(file_upload, transformation=[{ 'width': 500, 'height': 500, 'crop': 'limit' }])
+            filename = upload_result['url']
 
-            return jsonify({ 'success': 'Image uploaded.', 'filename' : 'static/images/' + filename })
+            return jsonify({ 'success': 'Image uploaded.', 'filename': filename })
         else:
             return jsonify({ 'error': 'Error #007: Could not find image.' })
     except:
