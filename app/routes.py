@@ -123,27 +123,36 @@ def editProfile():
 
 @app.route('/api/bottles/img/save', methods=['POST'])
 def bottleImg():
-    data = request.json
+    try:
+        data = request.json
 
-    user_id = data.get('user_id')
-    party_id = data.get('party_id')
-    label_img = data.get('label_img')
+        user_id = data.get('user_id')
+        party_id = data.get('party_id')
+        label_img = data.get('label_img')
 
-    if user_id and party_id and label_img:
-        bottle = Bottle.query.filter_by(user_id=user_id, party_id=party_id).first()
-        if bottle:
-            bottle.label_img = label_img
+        if user_id and party_id and label_img:
+            party = Party.query.filter_by(party_id=party_id).first()
+            if party.voting or party.reveal:
+                return jsonify({ 'error': 'Error #006: Cannot add bottle after voting has occurred.' }) 
+
+            bottle = Bottle.query.filter_by(user_id=user_id, party_id=party_id).first()
+            if bottle:
+                bottle.label_img = label_img
+            else:
+                bottle = Bottle(
+                    label_img=label_img,
+                    user_id=user_id,
+                    party_id=party_id
+                )
+
+            db.session.add(bottle)
+            db.session.commit()
+
+            return jsonify({ 'success': 'Bottle image added to database.' })
         else:
-            bottle = Bottle(
-                label_img=label_img,
-                user_id=user_id,
-                party_id=party_id
-            )
-
-        db.session.add(bottle)
-        db.session.commit()
-
-        return jsonify({ 'success': 'Bottle image added to database.' })
+            return jsonify({ 'error': 'Error #004444: Missing parameters.' })
+    except:
+        return jsonify({ 'error': 'Error #004444: Could not upload image.' })
  
 @app.route('/api/parties/save', methods=['POST'])
 def createParty():
@@ -223,6 +232,10 @@ def addGuest():
         if data.get('party_id') and data.get('user_id'):
             party = db.session.query(Party).filter_by(party_id=data.get('party_id')).first()
             user = db.session.query(User).filter_by(user_id=data.get('user_id')).first()
+
+            if party.voting or party.reveal:
+                return jsonify({ 'error': 'Error #006: Cannot join party after voting has occurred.' })
+
             party.guests.append(user)
 
             db.session.add(party)
