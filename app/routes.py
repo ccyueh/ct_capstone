@@ -352,6 +352,12 @@ def getBottles():
             results = db.session.query(Bottle, User.first_name, User.last_name, User.email).join(User).filter(Bottle.user_id == User.user_id, Bottle.party_id == party_id, Bottle.user_id == request.args.get('user_id')).all()
  
         for result in results:
+            ratings = Rating.query.filter_by(bottle_id=bottle_id).all()
+            if len(ratings) > 0:
+                star_rating = sum([float(rating.stars) for rating in ratings])/len(ratings)
+            else:
+                star_rating = ''
+
             bottle = {
                 'bottle_id': result[0].bottle_id,
                 'producer': result[0].producer,
@@ -361,7 +367,8 @@ def getBottles():
                 'user_id': result[0].user_id,
                 'first_name': result.first_name,
                 'last_name': result.last_name,
-                'email': result.email
+                'email': result.email,
+                'star_rating': star_rating
             }
             bottles.append(bottle)
             
