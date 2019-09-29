@@ -352,7 +352,7 @@ def getBottles():
             results = db.session.query(Bottle, User.first_name, User.last_name, User.email).join(User).filter(Bottle.user_id == User.user_id, Bottle.party_id == party_id, Bottle.user_id == request.args.get('user_id')).all()
  
         for result in results:
-            ratings = Rating.query.filter_by(bottle_id=bottle_id).all()
+            ratings = Rating.query.filter_by(bottle_id=result[0].bottle_id).all()
             if len(ratings) > 0:
                 star_rating = sum([float(rating.stars) for rating in ratings])/len(ratings)
             else:
