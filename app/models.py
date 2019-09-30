@@ -26,11 +26,12 @@ class Party(db.Model):
 
     guests = db.relationship('User', secondary=party_guests, backref='party_guests')
 
+    party_code = db.Column(db.String(6))    
+
 class User(db.Model, UserMixin):
     user_id = db.Column(db.Integer, primary_key=True)
     first_name = db.Column(db.String(50))
     last_name = db.Column(db.String(50))
-    profile_img = db.Column(db.String(50), default='static/images/profile_0.jpg')
     email = db.Column(db.String(120), unique=True, index=True)
     password_hash = db.Column(db.String(256))
 
