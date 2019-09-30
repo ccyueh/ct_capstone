@@ -229,9 +229,9 @@ def addGuest():
     try:
         data = request.json
 
-        if data.get('party_id') and data.get('user_id'):
-            party = db.session.query(Party).filter_by(party_id=data.get('party_id')).first()
-            user = db.session.query(User).filter_by(user_id=data.get('user_id')).first()
+        if data.get('party_code') and data.get('user_id'):
+            party = Party.query.filter_by(party_code=data.get('party_code')).first()        
+            user = User.query.filter_by(user_id=data.get('user_id')).first()
 
             if party.voting or party.reveal:
                 return jsonify({ 'error': 'Error #006: Cannot join party after voting has occurred.' })
@@ -243,7 +243,7 @@ def addGuest():
 
             return jsonify({ 'success': 'Guest added to party.' })
         else:
-            return jsonify({ 'error': 'Error #006: Party and user IDs are required.' })
+            return jsonify({ 'error': 'Error #006: Please enter a valid party code.' })
     except:
         return jsonify({ 'error': 'Error #007: Could not add guest to party.' })
 
