@@ -344,7 +344,8 @@ def getParty():
                 'host_id': result.host_id,
                 'voting': result.voting,
                 'reveal': result.reveal,
-                'voting_end': result.voting_end
+                'voting_end': result.voting_end,
+                'party_code': result.party_code
             }
             parties.append(party)
 
