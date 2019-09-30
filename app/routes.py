@@ -233,15 +233,19 @@ def addGuest():
             party = Party.query.filter_by(party_code=data.get('party_code')).first()        
             user = User.query.filter_by(user_id=data.get('user_id')).first()
 
-            if party.voting or party.reveal:
-                return jsonify({ 'error': 'Error #006: Cannot join party after voting has occurred.' })
+            if party and user:
+                if party.voting or party.reveal:
+                    return jsonify({ 'error': 'Error #006: Cannot join party after voting has occurred.' })
 
-            party.guests.append(user)
+                party.guests.append(user)
 
-            db.session.add(party)
-            db.session.commit()
+                db.session.add(party)
+                db.session.commit()
 
-            return jsonify({ 'success': 'Guest added to party.' })
+                return jsonify({ 'success': 'Guest added to party.' })
+            
+            else:
+                return jsonify({ 'error': 'Error #006: Please enter a valid party code.' })
         else:
             return jsonify({ 'error': 'Error #006: Please enter a valid party code.' })
     except:
