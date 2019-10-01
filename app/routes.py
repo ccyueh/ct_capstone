@@ -8,7 +8,7 @@ import jwt
 from werkzeug.utils import secure_filename
 from cloudinary.uploader import upload
 
-ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
+ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
 
 @app.route('/')
 def index():
@@ -448,6 +448,9 @@ def cloudUpload():
     try:
         file_upload = request.files.get('file')
         if file_upload:
+            ext = file_upload.filename.rsplit('.', 1)[1].lower()
+            if ext not in ALLOWED_EXTENSIONS:
+                return jsonify({ 'error': 'Error: Allowed file extensions include .png, .jpg, .jpeg, .gif only.' })
             upload_result = upload(file_upload, transformation=[{ 'width': 500, 'height': 500, 'crop': 'limit' }])
             filename = upload_result['url']
 
