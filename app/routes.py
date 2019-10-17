@@ -48,11 +48,11 @@ def register():
                 db.session.commit()
                 return jsonify({ 'success': 'User registered.' })
             else:
-                return jsonify({ 'error': 'Error #003: Password and re-typed password must match.' })
+                return jsonify({ 'error': 'Error: Password and re-typed password must match.' })
         else:
-            return jsonify({ 'error': 'Error #004: All fields are required.' })
+            return jsonify({ 'error': 'Error: All fields are required.' })
     except:
-        return jsonify({ 'error': 'Error #005: Invalid parameters.' })
+        return jsonify({ 'error': 'Error: Invalid parameters.' })
 
 @app.route('/authenticate/login', methods=['GET'])
 def login():
@@ -68,11 +68,11 @@ def login():
 
         user = User.query.filter_by(email=data.get('email')).first()
         if user is None or not user.check_password(data.get('password')):
-            return jsonify({ 'error': 'Error #019: Incorrect email and/or password.' })
+            return jsonify({ 'error': 'Error: Incorrect email and/or password.' })
         else:
             return jsonify({ 'success': 'You are now logged in.', 'token': user.get_token() })
     except:
-        return jsonify({ 'error': 'Error #019: Could not log in.' })
+        return jsonify({ 'error': 'Error: Could not log in.' })
 
 @app.route('/api/users/retrieve', methods=['GET'])
 def getUser():
@@ -87,11 +87,11 @@ def getUser():
                 'password_hash': result.password_hash
             }
         else:
-            return jsonify({ 'error': 'Error #016: Missing user ID.' })
+            return jsonify({ 'error': 'Error: Missing user ID.' })
 
         return jsonify({ 'success': 'User info retrieved.', 'user': user })
     except:
-        return jsonify({ 'error': 'Error #017: Could not find user.' })
+        return jsonify({ 'error': 'Error: Could not find user.' })
 
 @app.route('/api/users/save', methods=['POST'])
 def editProfile():
@@ -119,14 +119,14 @@ def editProfile():
             if password == password2:
                 user.set_password(password)
             else:
-                return jsonify({ 'error': 'Error #003: Password and re-typed password must match.' })
+                return jsonify({ 'error': 'Error: Password and re-typed password must match.' })
 
         db.session.add(user)
         db.session.commit()
         
         return jsonify({ 'success': 'Profile edited.' })
     except:
-        return jsonify({ 'error': 'Error #004444: Invalid parameters.' })
+        return jsonify({ 'error': 'Error: Invalid parameters.' })
 
 @app.route('/api/bottles/img/save', methods=['POST'])
 def bottleImg():
@@ -140,7 +140,7 @@ def bottleImg():
         if user_id and party_id and label_img:
             party = Party.query.filter_by(party_id=party_id).first()
             if party.voting or party.reveal:
-                return jsonify({ 'error': 'Error #006: Cannot add bottle after voting has occurred.' }) 
+                return jsonify({ 'error': 'Error: Cannot add bottle after voting has occurred.' }) 
 
             bottle = Bottle.query.filter_by(user_id=user_id, party_id=party_id).first()
             if bottle:
@@ -157,9 +157,9 @@ def bottleImg():
 
             return jsonify({ 'success': 'Bottle image added to database.' })
         else:
-            return jsonify({ 'error': 'Error #004444: Missing parameters.' })
+            return jsonify({ 'error': 'Error: Missing parameters.' })
     except:
-        return jsonify({ 'error': 'Error #004444: Could not upload image.' })
+        return jsonify({ 'error': 'Error: Could not upload image.' })
  
 @app.route('/api/parties/save', methods=['POST'])
 def createParty():
@@ -228,9 +228,9 @@ def createParty():
 
             return jsonify({ 'success': 'Party created/edited.' })
         else:
-            return jsonify({ 'error': 'Error #001: All fields are required.' })
+            return jsonify({ 'error': 'Error: All fields are required.' })
     except:
-        return jsonify({ 'error': 'Error #002: Invalid parameters.' })
+        return jsonify({ 'error': 'Error: Invalid parameters.' })
 
 
 @app.route('/api/guests/save', methods=['POST'])
@@ -244,7 +244,7 @@ def addGuest():
 
             if party and user:
                 if party.voting or party.reveal:
-                    return jsonify({ 'error': 'Error #006: Cannot join party after voting has occurred.' })
+                    return jsonify({ 'error': 'Error: Cannot join party after voting has occurred.' })
 
                 party.guests.append(user)
 
@@ -254,11 +254,11 @@ def addGuest():
                 return jsonify({ 'success': 'Guest added to party.' })
             
             else:
-                return jsonify({ 'error': 'Error #006: Please enter a valid party code.' })
+                return jsonify({ 'error': 'Error: Please enter a valid party code.' })
         else:
-            return jsonify({ 'error': 'Error #006: Please enter a valid party code.' })
+            return jsonify({ 'error': 'Error: Please enter a valid party code.' })
     except:
-        return jsonify({ 'error': 'Error #007: Could not add guest to party.' })
+        return jsonify({ 'error': 'Error: Could not add guest to party.' })
 
 @app.route('/api/bottles/save', methods=['POST'])
 def addBottle():
@@ -285,9 +285,9 @@ def addBottle():
 
             return jsonify({ 'success': 'Bottle added/edited.' })
         else:
-            return jsonify({ 'error': 'Error #008: Missing parameters.' })
+            return jsonify({ 'error': 'Error: Missing parameters.' })
     except:
-        return jsonify({ 'error': 'Error #009: Could not add bottle.' })
+        return jsonify({ 'error': 'Error: Could not add bottle.' })
 
 @app.route('/api/ratings/save', methods=['POST'])
 def rate():
@@ -319,9 +319,9 @@ def rate():
 
             return jsonify({ 'success': 'Rating added/edited.' })
         else:
-            return jsonify({ 'error': 'Error #010: Missing parameters.' })
+            return jsonify({ 'error': 'Error: Missing parameters.' })
     except:
-        return jsonify({ 'error': 'Error #011: Could not add rating.' })
+        return jsonify({ 'error': 'Error: Could not add rating.' })
 
 @app.route('/api/parties/retrieve', methods=['GET'])
 def getParty():
@@ -340,7 +340,7 @@ def getParty():
         elif user_id and not host_id and not party_id:
             results = Party.query.join(party_guests).join(User).filter(User.user_id == user_id).all()
         else:
-            return jsonify({ 'error': 'Error #016: Retrieve parties using one ID only.' })
+            return jsonify({ 'error': 'Error: Retrieve parties using one ID only.' })
 
         parties = []
         for result in results:
@@ -361,7 +361,7 @@ def getParty():
         return jsonify({ 'success': 'Party info retrieved.', 'parties': parties })
         # use party_id(s) to get more information (guests, bottles, ratings)
     except:
-        return jsonify({ 'error': 'Error #017: Could not find party/parties.' })
+        return jsonify({ 'error': 'Error: Could not find party/parties.' })
 
 @app.route('/api/bottles/retrieve', methods=['GET'])
 def getBottles():
@@ -371,7 +371,7 @@ def getBottles():
         
         bottles = []
         if not party_id:
-            return jsonify({ 'error': 'Error #018: Missing parameters.' })
+            return jsonify({ 'error': 'Error: Missing parameters.' })
 
         if 'user_id' not in list(request.args.keys()):
             results = db.session.query(Bottle, User.first_name, User.last_name, User.email).join(User).filter(Bottle.user_id == User.user_id, Bottle.party_id == party_id).all()
@@ -401,7 +401,7 @@ def getBottles():
             
         return jsonify({ 'success': 'Retrieved bottles.', 'bottles': bottles })
     except:
-        return jsonify({ 'error': 'Error #019: Could not find bottles.' })
+        return jsonify({ 'error': 'Error: Could not find bottles.' })
 
 @app.route('/api/ratings/retrieve', methods=['GET'])
 def getRating():
@@ -431,9 +431,9 @@ def getRating():
 
             return jsonify({ 'success': 'Rating info retrieved.', 'star_ratings': star_ratings, 'rated_by': rated_by })
         else:
-            return jsonify({ 'error': 'Error #014: Missing parameters.' })
+            return jsonify({ 'error': 'Error: Missing parameters.' })
     except:
-        return jsonify({ 'error': 'Error #015: Could not find rating.' })
+        return jsonify({ 'error': 'Error: Could not find rating.' })
 
 @app.route('/api/parties/delete', methods=['DELETE'])
 def delete():
@@ -441,7 +441,7 @@ def delete():
         party_id = request.args.get('party_id')
 
         if not party_id:
-            return jsonify({ 'error': 'Error #006: Party ID required for deletion' })
+            return jsonify({ 'error': 'Error: Party ID required for deletion' })
 
         party = Party.query.filter_by(party_id=party_id).first()
 
@@ -450,7 +450,7 @@ def delete():
 
         return jsonify({ 'success': 'Party canceled.' })
     except:
-        return jsonify({ 'error': 'Error #007: Could not delete event' })
+        return jsonify({ 'error': 'Error: Could not delete event' })
 
 @app.route('/upload', methods=['POST'])
 def cloudUpload():
@@ -465,9 +465,9 @@ def cloudUpload():
 
             return jsonify({ 'success': 'Image uploaded.', 'filename': filename })
         else:
-            return jsonify({ 'error': 'Error #007: Could not find image.' })
+            return jsonify({ 'error': 'Error: Could not find image.' })
     except:
-        return jsonify({ 'error': 'Error #007: Could not upload image.' })
+        return jsonify({ 'error': 'Error: Could not upload image.' })
 
 @app.route('/password/reset', methods=['POST'])
 def passwordReset():
@@ -499,5 +499,5 @@ def passwordReset():
         response = sg.send(message)
         
         return jsonify({ 'success': 'New password sent to e-mail' })
-    except Exception as e:
+    except:
         return jsonify({ 'error': 'Error: Could not send e-mail' })
