@@ -9,6 +9,7 @@ import jwt
 from werkzeug.utils import secure_filename
 from cloudinary.uploader import upload
 import random
+import uuid
 
 import sendgrid
 from sendgrid import SendGridAPIClient
@@ -211,13 +212,15 @@ def createParty():
             else:
                 # set voting_end to after the party
                 voting_end = start + timedelta(days=365)
+                party_code = uuid.uuid4().hex[:8]
                 party = Party(
                     start=start,
                     end=end,
                     party_name=party_name,
                     location=location,
                     host_id=host_id,
-                    voting_end=voting_end
+                    voting_end=voting_end,
+                    party_code=party_code
                 )
 
             db.session.add(party)
