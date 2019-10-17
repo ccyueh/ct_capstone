@@ -212,7 +212,7 @@ def createParty():
             else:
                 # set voting_end to after the party
                 voting_end = start + timedelta(days=365)
-                party_code = uuid.uuid4().hex[:8]
+                party_code = uuid.uuid4().hex[:6]
                 party = Party(
                     start=start,
                     end=end,
