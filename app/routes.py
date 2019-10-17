@@ -2,11 +2,17 @@ from app import app, db
 import os
 from flask import request, jsonify
 from app.models import Party, User, Bottle, Rating, party_guests
+
 from datetime import datetime, timedelta
 import time
 import jwt
 from werkzeug.utils import secure_filename
 from cloudinary.uploader import upload
+import random
+
+import sendgrid
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
 
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
 
@@ -459,3 +465,36 @@ def cloudUpload():
             return jsonify({ 'error': 'Error #007: Could not find image.' })
     except:
         return jsonify({ 'error': 'Error #007: Could not upload image.' })
+
+@app.route('/password/reset', methods=['POST'])
+def passwordReset():
+    data = request.json
+
+    to_email = data.get('email')
+    user = User.query.filter_by(email=to_email).first()
+    if not user:
+        return jsonify({ 'error': 'Error: Could not reset password.' })
+    
+    try:
+        user_id = user.user_id
+        first = user.first_name
+        new_pass = str(random.randint(999, 9999))
+ 
+        user.set_password(new_pass)
+
+        db.session.add(user)
+        db.session.commit()
+ 
+        email_content = 'Your SipperParty password has been reset to ' + new_pass + '.'   
+        message = Mail(
+            from_email='sipperapp@gmail.com',
+            to_emails=to_email,
+            subject='SipperParty Password Reset',
+            html_content=email_content)
+        
+        sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
+        response = sg.send(message)
+        
+        return jsonify({ 'success': 'New password sent to e-mail' })
+    except Exception as e:
+        return jsonify({ 'error': 'Error: Could not send e-mail' })
