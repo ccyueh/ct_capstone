@@ -484,7 +484,7 @@ def passwordReset():
 
         db.session.add(user)
         db.session.commit()
- 
+        print('db') 
         email_content = 'Your SipperParty password has been reset to ' + new_pass + '.'   
         message = Mail(
             from_email='sipperapp@gmail.com',
@@ -493,8 +493,10 @@ def passwordReset():
             html_content=email_content)
         
         sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
+        print(os.environ.get('SENDGRID_API_KEY'))
         response = sg.send(message)
         
         return jsonify({ 'success': 'New password sent to e-mail' })
     except Exception as e:
+        print(e)
         return jsonify({ 'error': 'Error: Could not send e-mail' })
