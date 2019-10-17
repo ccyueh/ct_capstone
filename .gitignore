@@ -3,4 +3,3 @@
 *pyc
 .env
 sendgrid.env
-sendgrid_test.py
