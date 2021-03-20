@@ -23,7 +23,7 @@ gunicorn==19.9.0
 idna==2.8
 importlib-metadata==0.23
 itsdangerous==1.1.0
-Jinja2==2.10.1
+Jinja2==2.11.3
 Mako==1.0.14
 MarkupSafe==1.1.1
 mock==3.0.5
